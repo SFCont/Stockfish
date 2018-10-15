@@ -219,6 +219,9 @@ namespace {
     // and h6. It is set to 0 when king safety evaluation is skipped.
     Bitboard kingRing[COLOR_NB];
 
+    Bitboard MobQueensAttack[2][9];
+	int QIdx[2] = { 0ULL,0ULL };
+
     // kingAttackersCount[color] is the number of pieces of the given color
     // which attack a square in the kingRing of the enemy king.
     int kingAttackersCount[COLOR_NB];
@@ -319,7 +322,13 @@ namespace {
             kingAttacksCount[Us] += popcount(b & attackedBy[Them][KING]);
         }
 
-        int mob = popcount(b & mobilityArea[Us]);
+        int mob = 0;
+		if (Pt != QUEEN)
+		{
+			mob = popcount(b & mobilityArea[Us]);
+			mobility[Us] += MobilityBonus[Pt - 2][mob];
+		}
+		else MobQueensAttack[Us][QIdx[Us]++] = b & mobilityArea[Us];
 
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
@@ -396,6 +405,17 @@ namespace {
                 score -= WeakQueen;
         }
     }
+
+    if (Pt == QUEEN && Us == BLACK)
+	{
+		for (Color us = Color(0); us < COLOR_NB; ++us)
+			for (int i = 0; i < QIdx[us]; i++)
+			{
+				auto mob = popcount(MobQueensAttack[us][i] & ~attackedBy[~us][ALL_PIECES]);
+				mobility[us] += MobilityBonus[QUEEN-2][mob];
+			}
+	}
+
     if (T)
         Trace::add(Pt, Us, score);
 
