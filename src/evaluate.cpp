@@ -321,6 +321,8 @@ namespace {
 
         int mob = popcount(b & mobilityArea[Us]);
 
+        //Don't penalize pinned knights
+        if(Pt!=KNIGHT || !(pos.blockers_for_king(Us) & s))
         mobility[Us] += MobilityBonus[Pt - 2][mob];
 
         if (Pt == BISHOP || Pt == KNIGHT)
